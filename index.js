@@ -40,7 +40,7 @@ app.get('/:ip?', async (req, res) => {
 
   try {
     if (!reader) {
-      return res.status(500).json({ error: 'Database not loaded' });
+      return res.status(500).json({ error: mmdbFile });
     }
     const result = reader.get(ipAddress);
     const responseData = {
