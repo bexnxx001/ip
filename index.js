@@ -2,7 +2,7 @@ const express = require('express');
 const maxmind = require('maxmind');
 const fs = require('fs');
 
-const mmdbFile = './country_asn.mmdb';
+const mmdbFile = require('path').join(__dirname, 'country_asn.mmdb');
 const app = express();
 app.set("json spaces", 2);
 const port = 15787;
