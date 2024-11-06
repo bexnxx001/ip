@@ -1,11 +1,25 @@
 const express = require('express');
 const maxmind = require('maxmind');
 const fs = require('fs');
+const path = require('path');
 
-const mmdbFile = require('path').join(__dirname, 'country_asn.mmdb');
+const mmdbFile = path.join(__dirname, 'country_asn.mmdb');
+const locationFile = path.join(__dirname, 'locations.json');
 const app = express();
 app.set("json spaces", 2);
 const port = 15787;
+
+const getLocationData = () => {
+  if (!fs.existsSync(locationFile)) {
+    throw new Error(`File ${locationFile} tidak ditemukan!`);
+  }
+  const data = fs.readFileSync(locationFile, 'utf8');
+  return JSON.parse(data);
+};
+
+const getLocationByCountryCode = (countryCode, locations) => {
+  return locations.find(location => location.cca2 === countryCode);
+};
 
 const lookup = async (ip) => {
   if (!fs.existsSync(mmdbFile)) {
@@ -38,7 +52,10 @@ app.get('/:ip?', async (req, res) => {
   }
 
   try {
+    const locations = getLocationData();
     const result = await lookup(ipAddress);
+    const countryCode = result?.country;
+    const locationData = countryCode ? getLocationByCountryCode(countryCode, locations) : null;
     const responseData = {
       ip: ipAddress,
       country: result?.country_name,
@@ -47,7 +64,12 @@ app.get('/:ip?', async (req, res) => {
       continent: result?.continent,
       continentName: result?.continent_name,
       asn: result?.asn,
-      isp: result?.as_name
+      isp: result?.as_name,
+      colo: locationData.iata,
+      latitude: locationData.lat,
+      longtidute: locationData.lon,
+      region: locationData.region,
+      city: locationData.city
     };
     res.json(responseData);
   } catch (error) {
