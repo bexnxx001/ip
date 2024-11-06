@@ -65,11 +65,11 @@ app.get('/:ip?', async (req, res) => {
       continentName: result?.continent_name,
       asn: result?.asn,
       isp: result?.as_name,
-      colo: locationData.iata,
-      latitude: locationData.lat,
-      longtidute: locationData.lon,
-      region: locationData.region,
-      city: locationData.city
+      colo: locationData?.iata,
+      latitude: locationData?.lat,
+      longtidute: locationData?.lon,
+      region: locationData?.region,
+      city: locationData?.city
     };
     res.json(responseData);
   } catch (error) {
