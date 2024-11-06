@@ -7,15 +7,14 @@ const app = express();
 app.set("json spaces", 2);
 const port = 15787;
 
-let reader;
-(async () => {
-  if (fs.existsSync(mmdbFile)) {
-    reader = await maxmind.open(mmdbFile);
-  } else {
-    console.error(`Database file ${mmdbFile} tidak ditemukan!`);
-    process.exit(1);
+const lookup = async (ip) => {
+  if (!fs.existsSync(mmdbFile)) {
+    throw new Error(`Database file ${mmdbFile} tidak ditemukan!`);
   }
-})();
+  const reader = await maxmind.open(mmdbFile);
+  const response = reader.get(ip);
+  return response;
+};
 
 function isValidIP(ip) {
   const ipv4Pattern = /^(?:\d{1,3}\.){3}\d{1,3}$/;
@@ -39,10 +38,7 @@ app.get('/:ip?', async (req, res) => {
   }
 
   try {
-    if (!reader) {
-      return res.status(500).json({ error: mmdbFile });
-    }
-    const result = reader.get(ipAddress);
+    const result = await lookup(ipAddress);
     const responseData = {
       ip: ipAddress,
       country: result?.country_name,
@@ -56,7 +52,7 @@ app.get('/:ip?', async (req, res) => {
     res.json(responseData);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Error' });
+    res.status(500).json({ error: error.message });
   }
 });
 
